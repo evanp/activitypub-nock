@@ -1,5 +1,5 @@
 {
-  "name": "activitypub-nock",
+  "name": "@evanp/activitypub-nock",
   "version": "0.2.0",
   "description": "A mock library for testing ActivityPub servers",
   "main": "index.js",
