@@ -1,0 +1,33 @@
+{
+  "name": "activitypub-nock",
+  "version": "0.1.0",
+  "description": "A mock library for testing ActivityPub servers",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evanp/activitypub-nock.git"
+  },
+  "keywords": [
+    "activitypub",
+    "nock",
+    "test",
+    "mock"
+  ],
+  "author": "evanp@socialwebfoundation.org",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/evanp/activitypub-nock/issues"
+  },
+  "homepage": "https://github.com/evanp/activitypub-nock#readme",
+  "dependencies": {
+    "activitystrea.ms": "^3.2.0",
+    "nock": "^14.0.10"
+  },
+  "devDependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

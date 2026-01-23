@@ -1,4 +1,4 @@
-import as2 from '../../lib/activitystreams.js'
+import as2 from './activitystreams.js'
 import nock from 'nock'
 import crypto from 'node:crypto'
 import { promisify } from 'node:util'
