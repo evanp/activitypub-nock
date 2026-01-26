@@ -234,7 +234,7 @@ export function resetBodies () {
 
 function captureBody (domain, uri, requestBody) {
   const url = new URL(uri, `https://${domain}`).toString()
-  bodies[url] = requestBody
+  bodies.set(url, requestBody)
 }
 
 const requestHeaders = new Map()

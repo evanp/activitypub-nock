@@ -5,6 +5,7 @@ import fetch from 'node-fetch'
 
 describe('activitypub-mock', async () => {
   const domain = 'activitypub.example'
+  const remote = 'remote.example'
   let module
   let nockSetup
 
@@ -43,5 +44,26 @@ describe('activitypub-mock', async () => {
     const json = await result.json()
     assert.strictEqual(json.id, id)
     assert.strictEqual(json.type, 'Note')
+  })
+
+  it('can get a request body', async () => {
+    const { getBody, resetBodies } = module
+    const username = 'test1'
+    const remotename = 'remote1'
+    const id = `https://${domain}/user/${username}/inbox`
+    const activity = await as2.import({
+      'id': `https://${remote}/user/${remotename}/activity/1`,
+      type: 'Activity',
+      'actor': `https://${remote}/user/${remotename}`
+    })
+    const result = await fetch(id, {
+      method: 'POST',
+      body: await activity.write(),
+      'Content-Type': 'application/activity+json'
+    })
+    assert.strictEqual(result.status, 202)
+    const body = getBody(id)
+    assert.ok(body.match(remotename))
+    resetBodies()
   })
 })
