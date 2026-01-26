@@ -1,6 +1,7 @@
 import as2 from './activitystreams.js'
 import nock from 'nock'
 import crypto from 'node:crypto'
+import { request } from 'node:http'
 import { promisify } from 'node:util'
 
 const PAGE_SIZE = 20
@@ -221,6 +222,21 @@ export const resetInbox = () => {
   }
 }
 
+const bodies = new Map()
+
+export function getBody (uri) {
+  return bodies.get(uri)
+}
+
+export function resetBodies () {
+  bodies.clear()
+}
+
+function captureBody (domain, uri, requestBody) {
+  const url = new URL(uri, `https://${domain}`).toString()
+  bodies[url] = requestBody
+}
+
 const requestHeaders = new Map()
 
 export function getRequestHeaders (uri) {
@@ -276,6 +292,7 @@ export const nockSetup = (domain, logger = null) =>
     .post(/^\/user\/(\w+)\/inbox$/)
     .reply(async function (uri, requestBody) {
       captureRequestHeaders(domain, uri, this?.req)
+      captureBody(domain, uri, requestBody)
       const username = uri.match(/^\/user\/(\w+)\/inbox$/)[1]
       if (username in postInbox) {
         postInbox[username] += 1
