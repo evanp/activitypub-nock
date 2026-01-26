@@ -6,6 +6,8 @@ import fetch from 'node-fetch'
 describe('activitypub-mock', async () => {
   const domain = 'activitypub.example'
   const remote = 'remote.example'
+  const shared = 'shared.example'
+
   let module
   let nockSetup
 
@@ -59,11 +61,56 @@ describe('activitypub-mock', async () => {
     const result = await fetch(id, {
       method: 'POST',
       body: await activity.write(),
-      'Content-Type': 'application/activity+json'
+      headers: {
+        'Content-Type': 'application/activity+json'
+      }
     })
     assert.strictEqual(result.status, 202)
     const body = getBody(id)
     assert.ok(body.match(remotename))
     resetBodies()
+  })
+
+  it('can setup a domain with a shared inbox', async () => {
+    nockSetup(shared, { sharedInbox: true })
+    assert.ok(true)
+  })
+
+  it('can get a mock user with a shared inbox', async () => {
+    const username = 'test1'
+    const id = `https://${shared}/user/${username}`
+    const result = await fetch(id)
+    assert.strictEqual(result.status, 200)
+    const json = await result.json()
+    assert.strictEqual(
+      json.endpoints.sharedInbox,
+      `https://${shared}/shared/inbox`
+    )
+  })
+
+  it('can post to a shared inbox', async () => {
+    const { getBody, resetBodies, postSharedInbox, resetSharedInbox } = module
+    const username = 'test1'
+    const remotename = 'remote1'
+    const id = `https://${shared}/shared/inbox`
+    const activity = await as2.import({
+      'id': `https://${remote}/user/${remotename}/activity/2`,
+      type: 'Activity',
+      'actor': `https://${remote}/user/${remotename}`
+    })
+    const result = await fetch(id, {
+      method: 'POST',
+      body: await activity.write(),
+      headers: {
+        'Content-Type': 'application/activity+json'
+      }
+    })
+    assert.strictEqual(result.status, 202)
+    const body = getBody(id)
+    assert.ok(body.match(remotename))
+    assert.strictEqual(postSharedInbox[shared], 1)
+    resetBodies()
+    resetSharedInbox()
+    assert.ok(true)
   })
 })

@@ -1,7 +1,6 @@
 import as2 from './activitystreams.js'
 import nock from 'nock'
 import crypto from 'node:crypto'
-import { request } from 'node:http'
 import { promisify } from 'node:util'
 
 const PAGE_SIZE = 20
@@ -140,7 +139,7 @@ export const nockSignatureFragment = async ({ method = 'GET', url, date, digest 
 export const nockKeyRotate = async (username, domain = defaultDomain) =>
   domains.get(domain).set(username, await newKeyPair(username))
 
-export const makeActor = async (username, domain = defaultDomain) =>
+export const makeActor = async (username, domain = defaultDomain, options = {}) =>
   await as2.import({
     '@context': [
       'https://www.w3.org/ns/activitystreams',
@@ -165,7 +164,10 @@ export const makeActor = async (username, domain = defaultDomain) =>
       type: 'Link',
       href: `https://${domain}/profile/${username}`,
       mediaType: 'text/html'
-    }
+    },
+    endpoints: (options.sharedInbox)
+      ? { sharedInbox: `https://${domain}/shared/inbox` }
+      : undefined
   })
 
 // Just the types we use here
@@ -215,10 +217,17 @@ const uppercase = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 const lowercase = (str) => str.toLowerCase()
 
 export const postInbox = {}
+export const postSharedInbox = {}
 
 export const resetInbox = () => {
   for (const username in postInbox) {
     postInbox[username] = 0
+  }
+}
+
+export const resetSharedInbox = () => {
+  for (const domain in postInbox) {
+    postInbox[domain] = 0
   }
 }
 
@@ -253,7 +262,7 @@ const captureRequestHeaders = (domain, uri, req) => {
   requestHeaders.set(url, headers)
 }
 
-export const nockSetup = (domain, logger = null) =>
+export const nockSetup = (domain, options) =>
   nock(`https://${domain}`)
     .persist()
     .get(/^\/.well-known\/webfinger/)
@@ -279,11 +288,24 @@ export const nockSetup = (domain, logger = null) =>
         JSON.stringify(webfinger),
         { 'Content-Type': 'application/jrd+json' }]
     })
+    .post(/^\/shared\/inbox$/)
+    .reply(async function (uri, requestBody) {
+      captureRequestHeaders(domain, uri, this?.req)
+      captureBody(domain, uri, requestBody)
+      if (!options.sharedInbox) {
+        return [404, 'not found']
+      }
+      if (!(domain in postSharedInbox)) {
+        postSharedInbox[domain] = 0
+      }
+      postSharedInbox[domain] += 1
+      return [202, 'accepted']
+    })
     .get(/^\/user\/(\w+)$/)
     .reply(async function (uri, requestBody) {
       captureRequestHeaders(domain, uri, this?.req)
       const username = uri.match(/^\/user\/(\w+)$/)[1]
-      const actor = await makeActor(username, domain)
+      const actor = await makeActor(username, domain, options)
       const actorText = await actor.write(
         { additional_context: 'https://w3id.org/security/v1' }
       )
