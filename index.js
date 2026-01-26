@@ -401,21 +401,21 @@ export const nockSetup = (domain, options = {}) =>
     })
     .get(/^\/user\/(\w+)\/collection\/(\d+)$/)
     .reply(async function (uri, requestBody) {
-      logger?.debug('Capturing request headers')
+      options?.logger?.debug('Capturing request headers')
       captureRequestHeaders(domain, uri, this?.req)
-      logger?.debug('Matching parameters')
+      options?.logger?.debug('Matching parameters')
       const match = uri.match(/^\/user\/(\w+)\/collection\/(\d+)$/)
       const username = match[1]
       const type = 'Collection'
       const num = parseInt(match[2])
-      logger?.debug('Ensuring collection')
+      options?.logger?.debug('Ensuring collection')
       const items = ensureCollection(domain, username, num)
-      logger?.debug('Making collection object')
+      options?.logger?.debug('Making collection object')
       const summary = `${num} collection by ${username}`
       const obj = await makeObject(username, type, num, domain, { items, summary })
-      logger?.debug('Writing collection object to text')
+      options?.logger?.debug('Writing collection object to text')
       const objText = await obj.write({ useOriginalContext: true })
-      logger?.debug('Sending output')
+      options?.logger?.debug('Sending output')
       return [200, objText, { 'Content-Type': 'application/activity+json' }]
     })
     .get(/^\/user\/(\w+)\/orderedcollection\/(\d+)$/)

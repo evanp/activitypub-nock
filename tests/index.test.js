@@ -29,7 +29,6 @@ describe('activitypub-mock', async () => {
   })
 
   it('can get a mock user', async () => {
-    await nockSetup(domain)
     const username = 'test1'
     const id = `https://${domain}/user/${username}`
     const result = await fetch(id)
@@ -40,7 +39,6 @@ describe('activitypub-mock', async () => {
   })
 
   it('can get a mock object', async () => {
-    await nockSetup(domain)
     const username = 'test1'
     const id = `https://${domain}/user/${username}/note/1`
     const result = await fetch(id)
@@ -51,7 +49,6 @@ describe('activitypub-mock', async () => {
   })
 
   it('can get a request body', async () => {
-    await nockSetup(domain)
     const { getBody, resetBodies } = module
     const username = 'test1'
     const remotename = 'remote1'
@@ -148,5 +145,15 @@ describe('activitypub-mock', async () => {
     })
     assert.strictEqual(result2.status, 202)
     assert.strictEqual(postInbox[username], 1)
+  })
+
+  it('can get a mock collection', async () => {
+    const username = 'test1'
+    const id = `https://${domain}/user/${username}/collection/1`
+    const result = await fetch(id)
+    assert.strictEqual(result.status, 200)
+    const json = await result.json()
+    assert.strictEqual(json.id, id)
+    assert.strictEqual(json.type, 'Collection')
   })
 })
