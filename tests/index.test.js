@@ -111,6 +111,7 @@ describe('activitypub-mock', async () => {
     assert.strictEqual(postSharedInbox[shared], 1)
     resetBodies()
     resetSharedInbox()
+    assert.strictEqual(postSharedInbox[shared], 0)
     assert.ok(true)
   })
 })

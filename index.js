@@ -226,8 +226,8 @@ export const resetInbox = () => {
 }
 
 export const resetSharedInbox = () => {
-  for (const domain in postInbox) {
-    postInbox[domain] = 0
+  for (const domain in postSharedInbox) {
+    postSharedInbox[domain] = 0
   }
 }
 
