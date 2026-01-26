@@ -262,7 +262,7 @@ const captureRequestHeaders = (domain, uri, req) => {
   requestHeaders.set(url, headers)
 }
 
-export const nockSetup = (domain, options) =>
+export const nockSetup = (domain, options = {}) =>
   nock(`https://${domain}`)
     .persist()
     .get(/^\/.well-known\/webfinger/)
@@ -316,12 +316,19 @@ export const nockSetup = (domain, options) =>
       captureRequestHeaders(domain, uri, this?.req)
       captureBody(domain, uri, requestBody)
       const username = uri.match(/^\/user\/(\w+)\/inbox$/)[1]
+      let results
       if (username in postInbox) {
         postInbox[username] += 1
+        results = [202, 'accepted']
       } else {
-        postInbox[username] = 1
+        postInbox[username] = (options.flaky)
+          ? 0
+          : 1
+        results = (options.flaky)
+          ? [503, 'service unavailable']
+          : [202, 'accepted']
       }
-      return [202, 'accepted']
+      return results
     })
     .get(/^\/user\/(\w+)\/inbox$/)
     .reply(async function (uri, requestBody) {
