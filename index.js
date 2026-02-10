@@ -96,7 +96,7 @@ export function addToCollection (username, collection, item, domain = defaultDom
   ensureCollection(domain, username, collection).unshift(item)
 }
 
-export const nockSignature = async ({ method = 'GET', url, date, digest = null, username, domain = defaultDomain }) => {
+export const nockSignature = async ({ method = 'GET', url, date, digest = null, username, domain = defaultDomain, algorithm = 'rsa-sha256' }) => {
   const privateKey = await getPrivateKey(username, domain)
   const keyId = nockFormat({ username, key: true, domain })
   const parsed = new URL(url)
@@ -113,7 +113,7 @@ export const nockSignature = async ({ method = 'GET', url, date, digest = null, 
   signer.update(data)
   const signature = signer.sign(privateKey).toString('base64')
   signer.end()
-  return `keyId="${keyId}",headers="(request-target) host date${(digest) ? ' digest' : ''}",signature="${signature.replace(/"/g, '\\"')}",algorithm="rsa-sha256"`
+  return `keyId="${keyId}",headers="(request-target) host date${(digest) ? ' digest' : ''}",signature="${signature.replace(/"/g, '\\"')}",algorithm="${algorithm}"`
 }
 
 export const nockSignatureFragment = async ({ method = 'GET', url, date, digest = null, username, domain = defaultDomain }) => {

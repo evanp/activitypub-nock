@@ -10,6 +10,7 @@ describe('activitypub-mock', async () => {
 
   let module
   let nockSetup
+  let nockSignature
 
   it('can import the module', async () => {
     module = await import('../index.js')
@@ -155,5 +156,25 @@ describe('activitypub-mock', async () => {
     const json = await result.json()
     assert.strictEqual(json.id, id)
     assert.strictEqual(json.type, 'Collection')
+  })
+
+  it('has a nockSignature export', async () => {
+    nockSignature = module?.nockSignature
+    assert.ok(nockSignature)
+    assert.strictEqual(typeof nockSignature, 'function')
+  })
+
+  it('can make a signature with hs2019 algorithm', async () => {
+    const username = 'test'
+    const date = new Date().toUTCString()
+    const algorithm = 'hs2019'
+    const signature = await nockSignature({
+      url: `https://${remote}/user/ok/outbox`,
+      date,
+      username,
+      algorithm
+    })
+    assert.ok(signature)
+    assert.ok(signature.match(/hs2019/))
   })
 })
