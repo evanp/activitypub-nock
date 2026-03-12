@@ -18,6 +18,9 @@ graph[defaultDomain] = new Map()
 const collections = new Map()
 collections[defaultDomain] = new Map()
 
+const bios = new Map()
+bios[defaultDomain] = new Map()
+
 const newKeyPair = async () => {
   return await generateKeyPair(
     'rsa',
@@ -96,6 +99,26 @@ export function addToCollection (username, collection, item, domain = defaultDom
   ensureCollection(domain, username, collection).unshift(item)
 }
 
+function ensureBio (domain) {
+  if (!bios.has(domain)) {
+    bios.set(domain, new Map())
+  }
+  return bios.get(domain)
+}
+
+export function setBio (username, bio, domain = defaultDomain) {
+  ensureBio(domain).set(username, bio)
+}
+
+export function getBio (username, domain = defaultDomain) {
+  const dm = ensureBio(domain)
+  if (dm.has(username)) {
+    return dm.get(username)
+  } else {
+    return undefined
+  }
+}
+
 export const nockSignature = async ({ method = 'GET', url, date, digest = null, username, domain = defaultDomain, algorithm = 'rsa-sha256' }) => {
   const privateKey = await getPrivateKey(username, domain)
   const keyId = nockFormat({ username, key: true, domain })
@@ -148,6 +171,7 @@ export const makeActor = async (username, domain = defaultDomain, options = {}) 
     id: `https://${domain}/user/${username}`,
     type: 'Person',
     preferredUsername: username,
+    summary: getBio(username, domain),
     inbox: `https://${domain}/user/${username}/inbox`,
     outbox: `https://${domain}/user/${username}/outbox`,
     followers: `https://${domain}/user/${username}/followers`,

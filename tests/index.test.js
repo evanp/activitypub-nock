@@ -2,6 +2,7 @@ import { describe, it, before } from 'node:test'
 import assert from 'node:assert'
 import as2 from 'activitystrea.ms'
 import fetch from 'node-fetch'
+import { nockFormat } from '../index.js'
 
 describe('activitypub-mock', async () => {
   const domain = 'activitypub.example'
@@ -11,6 +12,7 @@ describe('activitypub-mock', async () => {
   let module
   let nockSetup
   let nockSignature
+  let setBio
 
   it('can import the module', async () => {
     module = await import('../index.js')
@@ -176,5 +178,22 @@ describe('activitypub-mock', async () => {
     })
     assert.ok(signature)
     assert.ok(signature.match(/hs2019/))
+  })
+
+  it('has a setBio export', async () => {
+    setBio = module?.setBio
+    assert.ok(setBio)
+    assert.strictEqual(typeof setBio, 'function')
+  })
+
+  it('can set the bio for an actor', async () => {
+    const username = 'test2'
+    const bio = '<p>test bio</p>'
+    setBio(username, bio, domain)
+    const id = nockFormat({ username, domain })
+    const result = await fetch(id)
+    assert.ok(result.ok)
+    const json = await result.json()
+    assert.strictEqual(json.summary, bio)
   })
 })
