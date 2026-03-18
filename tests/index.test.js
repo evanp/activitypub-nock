@@ -8,6 +8,7 @@ describe('activitypub-mock', async () => {
   const domain = 'activitypub.example'
   const remote = 'remote.example'
   const shared = 'shared.example'
+  const limited = 'limited.example'
 
   let module
   let nockSetup
@@ -195,5 +196,20 @@ describe('activitypub-mock', async () => {
     assert.ok(result.ok)
     const json = await result.json()
     assert.strictEqual(json.summary, bio)
+  })
+
+  it('can setup a domain with rate-limiting', async () => {
+    nockSetup(limited, { rateLimit: true })
+    assert.ok(true)
+  })
+
+  it('sets the headers for a rate-limit domain', async () => {
+    const username = 'test3'
+    const id = nockFormat({ username, domain: limited })
+    const result = await fetch(id)
+    assert.ok(result.ok)
+    assert.ok(result.headers.get('x-ratelimit-limit'))
+    assert.ok(result.headers.get('x-ratelimit-remaining'))
+    assert.ok(result.headers.get('x-ratelimit-reset'))
   })
 })

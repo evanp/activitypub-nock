@@ -286,7 +286,16 @@ const captureRequestHeaders = (domain, uri, req) => {
   requestHeaders.set(url, headers)
 }
 
-export const nockSetup = (domain, options = {}) =>
+export const nockSetup = (domain, options = {}) => {
+  let remaining = 300
+  const rateLimitHeaders = () =>
+    (options.rateLimit)
+      ? {
+          'X-RateLimit-Limit': 1000,
+          'X-RateLimit-Remaining': --remaining,
+          'X-RateLimit-Reset': 300
+        }
+      : {}
   nock(`https://${domain}`)
     .persist()
     .get(/^\/.well-known\/webfinger/)
@@ -310,7 +319,7 @@ export const nockSetup = (domain, options = {}) =>
       }
       return [200,
         JSON.stringify(webfinger),
-        { 'Content-Type': 'application/jrd+json' }]
+        { 'Content-Type': 'application/jrd+json', ...rateLimitHeaders() }]
     })
     .post(/^\/shared\/inbox$/)
     .reply(async function (uri, requestBody) {
@@ -323,7 +332,7 @@ export const nockSetup = (domain, options = {}) =>
         postSharedInbox[domain] = 0
       }
       postSharedInbox[domain] += 1
-      return [202, 'accepted']
+      return [202, 'accepted', rateLimitHeaders()]
     })
     .get(/^\/user\/(\w+)$/)
     .reply(async function (uri, requestBody) {
@@ -333,7 +342,11 @@ export const nockSetup = (domain, options = {}) =>
       const actorText = await actor.write(
         { additional_context: 'https://w3id.org/security/v1' }
       )
-      return [200, actorText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        actorText,
+        { 'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders() }]
     })
     .post(/^\/user\/(\w+)\/inbox$/)
     .reply(async function (uri, requestBody) {
@@ -343,20 +356,20 @@ export const nockSetup = (domain, options = {}) =>
       let results
       if (username in postInbox) {
         postInbox[username] += 1
-        results = [202, 'accepted']
+        results = [202, 'accepted', rateLimitHeaders() ]
       } else {
         postInbox[username] = (options.flaky)
           ? 0
           : 1
         results = (options.flaky)
-          ? [503, 'service unavailable']
-          : [202, 'accepted']
+          ? [503, 'service unavailable', rateLimitHeaders() ]
+          : [202, 'accepted', rateLimitHeaders() ]
       }
       return results
     })
     .get(/^\/user\/(\w+)\/inbox$/)
     .reply(async function (uri, requestBody) {
-      return [403, 'forbidden']
+      return [403, 'forbidden', rateLimitHeaders() ]
     })
     .get(/^\/user\/(\w+)\/publickey$/)
     .reply(async function (uri, requestBody) {
@@ -375,7 +388,14 @@ export const nockSetup = (domain, options = {}) =>
       const publicKeyText = await publicKey.write(
         { additional_context: 'https://w3id.org/security/v1' }
       )
-      return [200, publicKeyText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        publicKeyText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/followers$/)
     .reply(async function (uri, requestBody) {
@@ -398,7 +418,14 @@ export const nockSetup = (domain, options = {}) =>
       const followersText = await followers.write(
         { additional_context: 'https://w3id.org/fep/5711' }
       )
-      return [200, followersText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        followersText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/following$/)
     .reply(async function (uri, requestBody) {
@@ -421,7 +448,14 @@ export const nockSetup = (domain, options = {}) =>
       const followingText = await following.write(
         { additional_context: 'https://w3id.org/fep/5711' }
       )
-      return [200, followingText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        followingText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/collection\/(\d+)$/)
     .reply(async function (uri, requestBody) {
@@ -440,7 +474,14 @@ export const nockSetup = (domain, options = {}) =>
       options?.logger?.debug('Writing collection object to text')
       const objText = await obj.write({ useOriginalContext: true })
       options?.logger?.debug('Sending output')
-      return [200, objText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        objText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/orderedcollection\/(\d+)$/)
     .reply(async function (uri, requestBody) {
@@ -453,7 +494,14 @@ export const nockSetup = (domain, options = {}) =>
       const summary = `${num} ordered collection by ${username}`
       const obj = await makeObject(username, type, num, domain, { orderedItems, summary })
       const objText = await obj.write({ useOriginalContext: true })
-      return [200, objText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        objText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/pagedcollection\/(\d+)$/)
     .reply(async function (uri, requestBody) {
@@ -469,7 +517,14 @@ export const nockSetup = (domain, options = {}) =>
         : undefined
       const obj = await makeObject(username, type, num, domain, { totalItems, first })
       const objText = await obj.write({ useOriginalContext: true })
-      return [200, objText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        objText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/pagedcollection\/(\d+)\/page\/(\d+)$/)
     .reply(async function (uri, requestBody) {
@@ -486,7 +541,14 @@ export const nockSetup = (domain, options = {}) =>
         : undefined
       const obj = await makeObject(username, type, num, domain, { items, next })
       const objText = await obj.write({ useOriginalContext: true })
-      return [200, objText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        objText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/pagedorderedcollection\/(\d+)$/)
     .reply(async function (uri, requestBody) {
@@ -502,7 +564,14 @@ export const nockSetup = (domain, options = {}) =>
         : undefined
       const obj = await makeObject(username, type, num, domain, { totalItems, first })
       const objText = await obj.write({ useOriginalContext: true })
-      return [200, objText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        objText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/pagedorderedcollection\/(\d+)\/page\/(\d+)$/)
     .reply(async function (uri, requestBody) {
@@ -519,7 +588,14 @@ export const nockSetup = (domain, options = {}) =>
         : undefined
       const obj = await makeObject(username, type, num, domain, { orderedItems, next })
       const objText = await obj.write({ useOriginalContext: true })
-      return [200, objText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        objText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/(\w+)\/(\d+)$/)
     .reply(async function (uri, requestBody) {
@@ -530,7 +606,14 @@ export const nockSetup = (domain, options = {}) =>
       const num = match[3]
       const obj = await makeObject(username, type, num, domain)
       const objText = await obj.write({ useOriginalContext: true })
-      return [200, objText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        objText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
     .get(/^\/user\/(\w+)\/(\w+)\/(\d+)\/(.*)$/)
     .reply(async function (uri, requestBody) {
@@ -542,8 +625,16 @@ export const nockSetup = (domain, options = {}) =>
       const obj = match[4]
       const act = await makeTransitive(username, type, num, obj, domain)
       const actText = await act.write()
-      return [200, actText, { 'Content-Type': 'application/activity+json' }]
+      return [
+        200,
+        actText,
+        {
+          'Content-Type': 'application/activity+json',
+          ...rateLimitHeaders()
+        }
+      ]
     })
+}
 
 export function nockFormat ({ username, type, num, obj, key, collection, page, domain = defaultDomain }) {
   let url = `https://${domain}/user/${username}`
