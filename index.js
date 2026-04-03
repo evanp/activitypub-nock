@@ -159,6 +159,41 @@ export const nockSignatureFragment = async ({ method = 'GET', url, date, digest 
   return `keyId="${keyId}",headers="(request-target) host date${(digest) ? ' digest' : ''}",signature="${signature.replace(/"/g, '\\"')}",algorithm="rsa-sha256"`
 }
 
+export const nockMessageSignature = async ({ method = 'GET', url, contentDigest = null, username, domain = defaultDomain, keyId = null }) => {
+  if (!keyId) {
+    keyId = nockFormat({ username, key: true, domain })
+  }
+  const privateKey = await getPrivateKey(username, domain)
+  const parsed = new URL(url)
+
+  const signatureInput = []
+
+  signatureInput.push(['@method', method ])
+  signatureInput.push(['@authority', parsed.hostname])
+  signatureInput.push(['@path', parsed.pathname])
+  if (contentDigest) {
+    signatureInput.push(['content-digest', contentDigest])
+  }
+
+  const created = Math.floor(Date.now() / 1000)
+  const componentList = signatureInput.map(([name]) => `"${name}"`).join(' ')
+  const signatureParams = `(${componentList});keyId="${keyId}";alg="rsa-v1_5-sha256";created=${created}`
+
+  signatureInput.push(['@signature-params', signatureParams])
+
+  const data = signatureInput.map(pair => `"${pair[0]}": ${pair[1]}`).join('\n')
+
+  const signer = crypto.createSign('sha256')
+  signer.update(data)
+  const signature = signer.sign(privateKey).toString('base64')
+  signer.end()
+
+  return {
+    'signature-input': `sig1=${signatureParams}`,
+    'signature': `sig1=:${signature}:`
+  }
+}
+
 export const nockKeyRotate = async (username, domain = defaultDomain) =>
   domains.get(domain).set(username, await newKeyPair(username))
 

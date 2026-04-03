@@ -212,4 +212,68 @@ describe('activitypub-mock', async () => {
     assert.ok(result.headers.get('x-ratelimit-remaining'))
     assert.ok(result.headers.get('x-ratelimit-reset'))
   })
+
+  describe('nockMessageSignature', async () => {
+    let nockMessageSignature
+
+    it('has a nockMessageSignature export', async () => {
+      nockMessageSignature = module?.nockMessageSignature
+      assert.ok(nockMessageSignature)
+      assert.strictEqual(typeof nockMessageSignature, 'function')
+    })
+
+    it('can make a message signature with a full key URL', async () => {
+      const username = 'test'
+      const url = `https://${remote}/user/ok/outbox`
+      const keyId = nockFormat({ username, key: true, domain })
+      const result = await nockMessageSignature({ url, username, keyId, domain })
+      assert.ok(result)
+      assert.strictEqual(typeof result, 'object')
+      assert.ok(result['signature-input'])
+      assert.ok(result['signature-input'].match(/"@method"/))
+      assert.ok(result['signature-input'].match(/"@authority"/))
+      assert.ok(result['signature-input'].match(/"@path"/))
+      assert.ok(result['signature-input'].includes(keyId))
+      assert.ok(result['signature-input'].match(/alg="rsa-v1_5-sha256"/))
+      assert.ok(result['signature-input'].match(/created=\d+/))
+      assert.ok(result.signature)
+      assert.ok(result.signature.match(/^sig1=:.+:$/))
+    })
+
+    it('can make a message signature with a full key URL and content-digest', async () => {
+      const username = 'test'
+      const url = `https://${remote}/user/ok/inbox`
+      const keyId = nockFormat({ username, key: true, domain })
+      const contentDigest = 'sha-256=:base64encodeddigest:'
+      const result = await nockMessageSignature({ method: 'POST', url, contentDigest, username, keyId, domain })
+      assert.ok(result)
+      assert.ok(result['signature-input'].match(/"content-digest"/))
+      assert.ok(result.signature)
+      assert.ok(result.signature.match(/^sig1=:.+:$/))
+    })
+
+    it('can make a message signature with a fragment key URL', async () => {
+      const username = 'test'
+      const url = `https://${remote}/user/ok/outbox`
+      const keyId = nockFormat({ username, domain }) + '#main-key'
+      const result = await nockMessageSignature({ url, username, keyId, domain })
+      assert.ok(result)
+      assert.ok(result['signature-input'].includes(keyId))
+      assert.ok(result.signature)
+      assert.ok(result.signature.match(/^sig1=:.+:$/))
+    })
+
+    it('can make a message signature with a fragment key URL and content-digest', async () => {
+      const username = 'test'
+      const url = `https://${remote}/user/ok/inbox`
+      const keyId = nockFormat({ username, domain }) + '#main-key'
+      const contentDigest = 'sha-256=:base64encodeddigest:'
+      const result = await nockMessageSignature({ method: 'POST', url, contentDigest, username, keyId, domain })
+      assert.ok(result)
+      assert.ok(result['signature-input'].includes(keyId))
+      assert.ok(result['signature-input'].match(/"content-digest"/))
+      assert.ok(result.signature)
+      assert.ok(result.signature.match(/^sig1=:.+:$/))
+    })
+  })
 })
