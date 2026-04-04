@@ -168,8 +168,8 @@ export const nockMessageSignature = async ({ method = 'GET', url, contentDigest 
 
   const signatureInput = []
 
-  signatureInput.push(['@method', method ])
-  signatureInput.push(['@authority', parsed.hostname])
+  signatureInput.push(['@method', method.toUpperCase() ])
+  signatureInput.push(['@authority', parsed.host])
   signatureInput.push(['@path', parsed.pathname])
   signatureInput.push(['@target-uri', url])
   signatureInput.push(['@scheme', parsed.protocol.slice(0, -1)])
@@ -178,7 +178,9 @@ export const nockMessageSignature = async ({ method = 'GET', url, contentDigest 
     signatureInput.push(['@query', parsed.search])
     for (const name of new Set(parsed.searchParams.keys())) {
       const values = parsed.searchParams.getAll(name)
-      signatureInput.push([`@query-param`, values.join(', '), `name="${name}"`])
+      if (values.length === 1) {
+        signatureInput.push([`@query-param`, values[0], `name="${name}"`])
+      }
     }
   }
   if (contentDigest) {
@@ -191,7 +193,7 @@ export const nockMessageSignature = async ({ method = 'GET', url, contentDigest 
       ? `"${arr[0]}";${arr[2]}`
       : `"${arr[0]}"`
   ).join(' ')
-  const signatureParams = `(${componentList});keyId="${keyId}";alg="rsa-v1_5-sha256";created=${created}`
+  const signatureParams = `(${componentList});keyid="${keyId}";alg="rsa-v1_5-sha256";created=${created}`
 
   signatureInput.push(['@signature-params', signatureParams])
 
