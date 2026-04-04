@@ -171,6 +171,9 @@ export const nockMessageSignature = async ({ method = 'GET', url, contentDigest 
   signatureInput.push(['@method', method ])
   signatureInput.push(['@authority', parsed.hostname])
   signatureInput.push(['@path', parsed.pathname])
+  if (parsed.search) {
+    signatureInput.push(['@query', parsed.search])
+  }
   if (contentDigest) {
     signatureInput.push(['content-digest', contentDigest])
   }

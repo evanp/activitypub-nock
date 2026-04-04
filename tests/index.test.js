@@ -275,5 +275,16 @@ describe('activitypub-mock', async () => {
       assert.ok(result.signature)
       assert.ok(result.signature.match(/^sig1=:.+:$/))
     })
+
+    it('can make a message signature for a URL with a query string', async () => {
+      const username = 'test'
+      const url = `https://${remote}/.well-known/webfinger?resource=acct:test@${remote}`
+      const keyId = nockFormat({ username, key: true, domain })
+      const result = await nockMessageSignature({ url, username, keyId, domain })
+      assert.ok(result)
+      assert.ok(result['signature-input'].match(/"@query"/))
+      assert.ok(result.signature)
+      assert.ok(result.signature.match(/^sig1=:.+:$/))
+    })
   })
 })
