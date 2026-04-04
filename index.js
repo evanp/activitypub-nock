@@ -173,15 +173,13 @@ export const nockMessageSignature = async ({ method = 'GET', url, contentDigest 
   signatureInput.push(['@path', parsed.pathname])
   signatureInput.push(['@target-uri', url])
   signatureInput.push(['@scheme', parsed.protocol.slice(0, -1)])
+  signatureInput.push(['@request-target', `${parsed.pathname}${parsed.search}`])
   if (parsed.search) {
     signatureInput.push(['@query', parsed.search])
-    signatureInput.push(['@request-target', `${parsed.pathname}?${parsed.search}`])
     for (const name of new Set(parsed.searchParams.keys())) {
       const values = parsed.searchParams.getAll(name)
       signatureInput.push([`@query-param`, values.join(', '), `name="${name}"`])
     }
-  } else {
-    signatureInput.push(['@request-target', parsed.pathname])
   }
   if (contentDigest) {
     signatureInput.push(['content-digest', contentDigest])
