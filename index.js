@@ -171,20 +171,37 @@ export const nockMessageSignature = async ({ method = 'GET', url, contentDigest 
   signatureInput.push(['@method', method ])
   signatureInput.push(['@authority', parsed.hostname])
   signatureInput.push(['@path', parsed.pathname])
+  signatureInput.push(['@target-uri', url])
+  signatureInput.push(['@scheme', parsed.protocol.slice(0, -1)])
   if (parsed.search) {
     signatureInput.push(['@query', parsed.search])
+    signatureInput.push(['@request-target', `${parsed.pathname}?${parsed.search}`])
+    for (const name of new Set(parsed.searchParams.keys())) {
+      const values = parsed.searchParams.getAll(name)
+      signatureInput.push([`@query-param`, values.join(', '), `name="${name}"`])
+    }
+  } else {
+    signatureInput.push(['@request-target', parsed.pathname])
   }
   if (contentDigest) {
     signatureInput.push(['content-digest', contentDigest])
   }
 
   const created = Math.floor(Date.now() / 1000)
-  const componentList = signatureInput.map(([name]) => `"${name}"`).join(' ')
+  const componentList = signatureInput.map(
+    (arr) => (arr.length === 3)
+      ? `"${arr[0]}";${arr[2]}`
+      : `"${arr[0]}"`
+  ).join(' ')
   const signatureParams = `(${componentList});keyId="${keyId}";alg="rsa-v1_5-sha256";created=${created}`
 
   signatureInput.push(['@signature-params', signatureParams])
 
-  const data = signatureInput.map(pair => `"${pair[0]}": ${pair[1]}`).join('\n')
+  const data = signatureInput.map(
+    arr => (arr.length === 3)
+      ? `"${arr[0]}";${arr[2]}: ${arr[1]}`
+      : `"${arr[0]}": ${arr[1]}`
+    ).join('\n')
 
   const signer = crypto.createSign('sha256')
   signer.update(data)

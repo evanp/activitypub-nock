@@ -233,6 +233,9 @@ describe('activitypub-mock', async () => {
       assert.ok(result['signature-input'].match(/"@method"/))
       assert.ok(result['signature-input'].match(/"@authority"/))
       assert.ok(result['signature-input'].match(/"@path"/))
+      assert.ok(result['signature-input'].match(/"@target-uri"/))
+      assert.ok(result['signature-input'].match(/"@scheme"/))
+      assert.ok(result['signature-input'].match(/"@request-target"/))
       assert.ok(result['signature-input'].includes(keyId))
       assert.ok(result['signature-input'].match(/alg="rsa-v1_5-sha256"/))
       assert.ok(result['signature-input'].match(/created=\d+/))
@@ -285,6 +288,35 @@ describe('activitypub-mock', async () => {
       assert.ok(result['signature-input'].match(/"@query"/))
       assert.ok(result.signature)
       assert.ok(result.signature.match(/^sig1=:.+:$/))
+    })
+
+    it('does not include @query-param for a URL with no query params', async () => {
+      const username = 'test'
+      const url = `https://${remote}/user/ok/outbox`
+      const keyId = nockFormat({ username, key: true, domain })
+      const result = await nockMessageSignature({ url, username, keyId, domain })
+      assert.ok(result)
+      assert.ok(!result['signature-input'].match(/"@query-param"/))
+    })
+
+    it('includes @query-param for a URL with one query param', async () => {
+      const username = 'test'
+      const url = `https://${remote}/.well-known/webfinger?resource=acct:test@${remote}`
+      const keyId = nockFormat({ username, key: true, domain })
+      const result = await nockMessageSignature({ url, username, keyId, domain })
+      assert.ok(result)
+      assert.ok(result['signature-input'].match(/"@query-param";name="resource"/))
+    })
+
+    it('includes @query-param for each param in a URL with three query params', async () => {
+      const username = 'test'
+      const url = `https://${remote}/search?q=hello&lang=en&page=1`
+      const keyId = nockFormat({ username, key: true, domain })
+      const result = await nockMessageSignature({ url, username, keyId, domain })
+      assert.ok(result)
+      assert.ok(result['signature-input'].match(/"@query-param";name="q"/))
+      assert.ok(result['signature-input'].match(/"@query-param";name="lang"/))
+      assert.ok(result['signature-input'].match(/"@query-param";name="page"/))
     })
   })
 })
