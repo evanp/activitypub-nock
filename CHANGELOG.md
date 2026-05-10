@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Updated `undici` dependency to 6.23.0.
+- Updated `undici` dependency to 6.25.0.
 
 ## [0.9.3] - 2026-05-09
 
