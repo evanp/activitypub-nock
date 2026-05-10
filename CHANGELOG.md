@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-05-09
+
+### Added
+
+- CHANGELOG.md to track changes.
+
 ### Changed
 
 - Set npm as the package ecosystem for Dependabot.
+- Expanded README.md to cover actual interface.
 
 ### Fixed
 
