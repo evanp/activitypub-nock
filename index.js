@@ -570,7 +570,8 @@ export const nockSetup = (domain, options = {}) => {
       const first = (totalItems > 0)
         ? nockFormat({ username, domain, type: 'PagedCollection', num, page: 0 })
         : undefined
-      const obj = await makeObject(username, type, num, domain, { totalItems, first })
+      const id = nockFormat({ username, domain, type: 'PagedCollection', num })
+      const obj = await makeObject(username, type, num, domain, { id, totalItems, first })
       const objText = await obj.write({ useOriginalContext: true })
       return [
         200,
@@ -594,7 +595,8 @@ export const nockSetup = (domain, options = {}) => {
       const next = (allItems.length > (page + 1) * PAGE_SIZE)
         ? nockFormat({ username, domain, type: 'PagedCollection', num, page: page + 1 })
         : undefined
-      const obj = await makeObject(username, type, num, domain, { items, next })
+      const id = nockFormat({ username, domain, type: 'PagedCollection', num, page })
+      const obj = await makeObject(username, type, num, domain, { id, items, next })
       const objText = await obj.write({ useOriginalContext: true })
       return [
         200,
@@ -617,7 +619,8 @@ export const nockSetup = (domain, options = {}) => {
       const first = (totalItems > 0)
         ? nockFormat({ username, domain, type: 'PagedOrderedCollection', num, page: 0 })
         : undefined
-      const obj = await makeObject(username, type, num, domain, { totalItems, first })
+      const id = nockFormat({ username, domain, type: 'PagedOrderedCollection', num })
+      const obj = await makeObject(username, type, num, domain, { id, totalItems, first })
       const objText = await obj.write({ useOriginalContext: true })
       return [
         200,
@@ -641,7 +644,8 @@ export const nockSetup = (domain, options = {}) => {
       const next = (allItems.length > (page + 1) * PAGE_SIZE)
         ? nockFormat({ username, domain, type: 'PagedOrderedCollection', num, page: page + 1 })
         : undefined
-      const obj = await makeObject(username, type, num, domain, { orderedItems, next })
+      const id = nockFormat({ username, domain, type: 'PagedOrderedCollection', num, page })
+      const obj = await makeObject(username, type, num, domain, { id, orderedItems, next })
       const objText = await obj.write({ useOriginalContext: true })
       return [
         200,

@@ -319,4 +319,30 @@ describe('activitypub-mock', async () => {
       assert.ok(result['signature-input'].match(/"@query-param";name="page"/))
     })
   })
+
+  describe('returned id matches request URL', async () => {
+    const routes = [
+      { name: 'actor', path: '/user/test1' },
+      { name: 'public key', path: '/user/test1/publickey' },
+      { name: 'followers collection', path: '/user/test1/followers' },
+      { name: 'following collection', path: '/user/test1/following' },
+      { name: 'collection', path: '/user/test1/collection/1' },
+      { name: 'ordered collection', path: '/user/test1/orderedcollection/2' },
+      { name: 'paged collection', path: '/user/test1/pagedcollection/3' },
+      { name: 'paged collection page', path: '/user/test1/pagedcollection/3/page/0' },
+      { name: 'paged ordered collection', path: '/user/test1/pagedorderedcollection/4' },
+      { name: 'paged ordered collection page', path: '/user/test1/pagedorderedcollection/4/page/0' },
+      { name: 'object', path: '/user/test1/note/1' }
+    ]
+
+    for (const route of routes) {
+      it(`returns matching id for ${route.name}`, async () => {
+        const id = `https://${domain}${route.path}`
+        const result = await fetch(id)
+        assert.strictEqual(result.status, 200, `expected 200 for ${id}`)
+        const json = await result.json()
+        assert.strictEqual(json.id, id)
+      })
+    }
+  })
 })
