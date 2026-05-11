@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.5] - 2026-05-11
+
+### Fixed
+
+- Make `id` properties match URL for all ActivityPub object endpoints.
+
 ## [0.9.4] - 2026-05-09
 
 ### Fixed
