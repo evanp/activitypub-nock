@@ -22,6 +22,7 @@ would otherwise need a real federated peer.
   - [Followers, following, collections](#followers-following-collections)
   - [Captured requests](#captured-requests)
   - [Inbox counters](#inbox-counters)
+  - [Actor status overrides](#actor-status-overrides)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
@@ -256,6 +257,31 @@ successful `POST`s to that domain's shared inbox.
 
 Reset the corresponding counters to zero. Call between test cases that
 share a process.
+
+### Actor status overrides
+
+Simulate a remote user that blocks (or has gone missing for) the client
+under test. While an override is set, *every* mocked endpoint scoped to
+that `(username, domain)` returns the chosen HTTP status:
+
+- the actor document
+- `publickey`
+- `followers`, `following`, all numbered collections and their pages
+- generic objects and transitive activities
+- `POST` and `GET` to the user's `inbox`
+- the `.well-known/webfinger` lookup for that user
+
+Other users on the same domain continue to respond normally. The override
+is keyed on `(username, domain)` only — it is not sensitive to who is
+making the request, so every caller sees the same status.
+
+#### `setActorStatus(username, status, domain?)`
+
+Start returning `status` from every endpoint for `username` on `domain`.
+
+#### `clearActorStatus(username, domain?)`
+
+Remove the override so the user's endpoints respond normally again.
 
 ## Maintainers
 

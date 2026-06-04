@@ -345,4 +345,52 @@ describe('activitypub-mock', async () => {
       })
     }
   })
+
+  describe('setActorStatus overrides all per-user endpoints', async () => {
+    const overrideUser = 'overrideuser'
+    const overrideStatus = 418
+    const routes = [
+      { name: 'actor', method: 'GET', path: `/user/${overrideUser}` },
+      { name: 'POST inbox', method: 'POST', path: `/user/${overrideUser}/inbox` },
+      { name: 'GET inbox', method: 'GET', path: `/user/${overrideUser}/inbox` },
+      { name: 'public key', method: 'GET', path: `/user/${overrideUser}/publickey` },
+      { name: 'followers collection', method: 'GET', path: `/user/${overrideUser}/followers` },
+      { name: 'following collection', method: 'GET', path: `/user/${overrideUser}/following` },
+      { name: 'collection', method: 'GET', path: `/user/${overrideUser}/collection/1` },
+      { name: 'ordered collection', method: 'GET', path: `/user/${overrideUser}/orderedcollection/2` },
+      { name: 'paged collection', method: 'GET', path: `/user/${overrideUser}/pagedcollection/3` },
+      { name: 'paged collection page', method: 'GET', path: `/user/${overrideUser}/pagedcollection/3/page/0` },
+      { name: 'paged ordered collection', method: 'GET', path: `/user/${overrideUser}/pagedorderedcollection/4` },
+      { name: 'paged ordered collection page', method: 'GET', path: `/user/${overrideUser}/pagedorderedcollection/4/page/0` },
+      { name: 'object', method: 'GET', path: `/user/${overrideUser}/note/1` },
+      { name: 'transitive', method: 'GET', path: `/user/${overrideUser}/like/1/object` },
+      { name: 'webfinger', method: 'GET', path: `/.well-known/webfinger?resource=${encodeURIComponent(`acct:${overrideUser}@${domain}`)}` }
+    ]
+
+    before(async () => {
+      const { setActorStatus } = module
+      assert.strictEqual(typeof setActorStatus, 'function')
+      setActorStatus(overrideUser, overrideStatus, domain)
+    })
+
+    for (const route of routes) {
+      it(`returns ${overrideStatus} for ${route.name}`, async () => {
+        const url = `https://${domain}${route.path}`
+        const result = await fetch(url, { method: route.method })
+        assert.strictEqual(result.status, overrideStatus,
+          `expected ${overrideStatus} for ${route.method} ${url} (got ${result.status})`)
+      })
+    }
+
+    it('clearActorStatus restores normal behavior', async () => {
+      const { clearActorStatus } = module
+      assert.strictEqual(typeof clearActorStatus, 'function')
+      clearActorStatus(overrideUser, domain)
+      const id = `https://${domain}/user/${overrideUser}`
+      const result = await fetch(id)
+      assert.strictEqual(result.status, 200)
+      const json = await result.json()
+      assert.strictEqual(json.id, id)
+    })
+  })
 })

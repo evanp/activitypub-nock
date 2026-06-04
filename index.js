@@ -19,6 +19,8 @@ const collections = new Map()
 collections[defaultDomain] = new Map()
 
 const bios = new Map()
+
+const actorStatuses = new Map()
 bios[defaultDomain] = new Map()
 
 const newKeyPair = async () => {
@@ -117,6 +119,26 @@ export function getBio (username, domain = defaultDomain) {
   } else {
     return undefined
   }
+}
+
+function ensureActorStatus (domain) {
+  if (!actorStatuses.has(domain)) {
+    actorStatuses.set(domain, new Map())
+  }
+  return actorStatuses.get(domain)
+}
+
+export function setActorStatus (username, statusCode, domain = defaultDomain) {
+  ensureActorStatus(domain).set(username, statusCode)
+}
+
+export function clearActorStatus (username, domain = defaultDomain) {
+  ensureActorStatus(domain).delete(username)
+}
+
+function getActorStatus (username, domain = defaultDomain) {
+  const dm = ensureActorStatus(domain)
+  return dm.has(username) ? dm.get(username) : null
 }
 
 export const nockSignature = async ({ method = 'GET', url, date, digest = null, username, domain = defaultDomain, algorithm = 'rsa-sha256' }) => {
@@ -362,6 +384,10 @@ export const nockSetup = (domain, options = {}) => {
         return [400, 'Bad Request']
       }
       const username = resource.slice(5).split('@')[0]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const webfinger = {
         subject: resource,
         links: [
@@ -393,6 +419,10 @@ export const nockSetup = (domain, options = {}) => {
     .reply(async function (uri, requestBody) {
       captureRequestHeaders(domain, uri, this?.req)
       const username = uri.match(/^\/user\/(\w+)$/)[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const actor = await makeActor(username, domain, options)
       const actorText = await actor.write(
         { additional_context: 'https://w3id.org/security/v1' }
@@ -408,6 +438,10 @@ export const nockSetup = (domain, options = {}) => {
       captureRequestHeaders(domain, uri, this?.req)
       captureBody(domain, uri, requestBody)
       const username = uri.match(/^\/user\/(\w+)\/inbox$/)[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       let results
       if (username in postInbox) {
         postInbox[username] += 1
@@ -424,12 +458,21 @@ export const nockSetup = (domain, options = {}) => {
     })
     .get(/^\/user\/(\w+)\/inbox$/)
     .reply(async function (uri, requestBody) {
+      const username = uri.match(/^\/user\/(\w+)\/inbox$/)[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       return [403, 'forbidden', rateLimitHeaders() ]
     })
     .get(/^\/user\/(\w+)\/publickey$/)
     .reply(async function (uri, requestBody) {
       captureRequestHeaders(domain, uri, this?.req)
       const username = uri.match(/^\/user\/(\w+)\/publickey$/)[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const publicKey = await as2.import({
         '@context': [
           'https://www.w3.org/ns/activitystreams',
@@ -456,6 +499,10 @@ export const nockSetup = (domain, options = {}) => {
     .reply(async function (uri, requestBody) {
       captureRequestHeaders(domain, uri, this?.req)
       const username = uri.match(/^\/user\/(\w+)\/followers$/)[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const items = ensureGraph(domain, username).get('followers')
       const followers = await as2.import({
         '@context': [
@@ -486,6 +533,10 @@ export const nockSetup = (domain, options = {}) => {
     .reply(async function (uri, requestBody) {
       captureRequestHeaders(domain, uri, this?.req)
       const username = uri.match(/^\/user\/(\w+)\/following$/)[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const items = ensureGraph(domain, username).get('following')
       const following = await as2.import({
         '@context': [
@@ -519,6 +570,10 @@ export const nockSetup = (domain, options = {}) => {
       options?.logger?.debug('Matching parameters')
       const match = uri.match(/^\/user\/(\w+)\/collection\/(\d+)$/)
       const username = match[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const type = 'Collection'
       const num = parseInt(match[2])
       options?.logger?.debug('Ensuring collection')
@@ -543,6 +598,10 @@ export const nockSetup = (domain, options = {}) => {
       captureRequestHeaders(domain, uri, this?.req)
       const match = uri.match(/^\/user\/(\w+)\/orderedcollection\/(\d+)$/)
       const username = match[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const type = 'OrderedCollection'
       const num = parseInt(match[2])
       const orderedItems = ensureCollection(domain, username, num)
@@ -563,6 +622,10 @@ export const nockSetup = (domain, options = {}) => {
       captureRequestHeaders(domain, uri, this?.req)
       const match = uri.match(/^\/user\/(\w+)\/pagedcollection\/(\d+)$/)
       const username = match[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const type = 'Collection'
       const num = parseInt(match[2])
       const items = ensureCollection(domain, username, num)
@@ -587,6 +650,10 @@ export const nockSetup = (domain, options = {}) => {
       captureRequestHeaders(domain, uri, this?.req)
       const match = uri.match(/^\/user\/(\w+)\/pagedcollection\/(\d+)\/page\/(\d+)$/)
       const username = match[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const type = 'CollectionPage'
       const num = parseInt(match[2])
       const page = parseInt(match[3])
@@ -612,6 +679,10 @@ export const nockSetup = (domain, options = {}) => {
       captureRequestHeaders(domain, uri, this?.req)
       const match = uri.match(/^\/user\/(\w+)\/pagedorderedcollection\/(\d+)$/)
       const username = match[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const type = 'OrderedCollection'
       const num = parseInt(match[2])
       const items = ensureCollection(domain, username, num)
@@ -636,6 +707,10 @@ export const nockSetup = (domain, options = {}) => {
       captureRequestHeaders(domain, uri, this?.req)
       const match = uri.match(/^\/user\/(\w+)\/pagedorderedcollection\/(\d+)\/page\/(\d+)$/)
       const username = match[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const type = 'OrderedCollectionPage'
       const num = parseInt(match[2])
       const page = parseInt(match[3])
@@ -661,6 +736,10 @@ export const nockSetup = (domain, options = {}) => {
       captureRequestHeaders(domain, uri, this?.req)
       const match = uri.match(/^\/user\/(\w+)\/(\w+)\/(\d+)$/)
       const username = match[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const type = uppercase(match[2])
       const num = match[3]
       const obj = await makeObject(username, type, num, domain)
@@ -679,6 +758,10 @@ export const nockSetup = (domain, options = {}) => {
       captureRequestHeaders(domain, uri, this?.req)
       const match = uri.match(/^\/user\/(\w+)\/(\w+)\/(\d+)\/(.*)$/)
       const username = match[1]
+      const overrideStatus = getActorStatus(username, domain)
+      if (overrideStatus) {
+        return [overrideStatus, '', rateLimitHeaders()]
+      }
       const type = match[2]
       const num = match[3]
       const obj = match[4]
