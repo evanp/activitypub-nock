@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-17
+
 ### Changed
 
-- Upgraded activitystrea.ms to v4.0.0
+- Upgraded activitystrea.ms to v4.0.0.
+- Upgraded undici, nock.
 
 ## [0.10.0] - 2026-06-04
 
