@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated actions/checkout and actions/setup-node from v4 to v7.
+- Enabled Dependabot updates for GitHub Actions and a seven-day cooldown
+  for npm and GitHub Actions updates.
+
 ## [1.0.0] - 2026-08-17
 
 ### Changed
@@ -165,3 +171,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project history before this tag was developed inside the
   `activitypub-bot` repository (commits from 2024-09 onward) and
   filtered into this repo on 2026-01-23 prior to publication.
+
+[Unreleased]: https://github.com/evanp/activitypub-nock/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/evanp/activitypub-nock/compare/v0.10.0...v1.0.0
+[0.10.0]: https://github.com/evanp/activitypub-nock/compare/v0.9.5...v0.10.0
+[0.9.5]: https://github.com/evanp/activitypub-nock/compare/v0.9.4...v0.9.5
+[0.9.4]: https://github.com/evanp/activitypub-nock/compare/v0.9.3...v0.9.4
+[0.9.3]: https://github.com/evanp/activitypub-nock/compare/v0.9.2...v0.9.3
+[0.9.2]: https://github.com/evanp/activitypub-nock/compare/v0.9.1...v0.9.2
+[0.9.1]: https://github.com/evanp/activitypub-nock/compare/v0.9.0...v0.9.1
+[0.9.0]: https://github.com/evanp/activitypub-nock/compare/v0.8.1...v0.9.0
+[0.8.1]: https://github.com/evanp/activitypub-nock/compare/v0.8.0...v0.8.1
+[0.8.0]: https://github.com/evanp/activitypub-nock/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/evanp/activitypub-nock/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/evanp/activitypub-nock/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/evanp/activitypub-nock/compare/v0.4.4...v0.5.0
+[0.4.4]: https://github.com/evanp/activitypub-nock/compare/v0.4.3...v0.4.4
+[0.4.3]: https://github.com/evanp/activitypub-nock/compare/v0.4.2...v0.4.3
+[0.4.2]: https://github.com/evanp/activitypub-nock/compare/v0.4.1...v0.4.2
+[0.4.1]: https://github.com/evanp/activitypub-nock/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/evanp/activitypub-nock/compare/v0.3.1...v0.4.0
+[0.3.1]: https://github.com/evanp/activitypub-nock/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/evanp/activitypub-nock/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/evanp/activitypub-nock/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/evanp/activitypub-nock/tree/v0.2.0
