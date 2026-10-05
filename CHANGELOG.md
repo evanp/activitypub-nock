@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-05
+
 ### Changed
 
-- Updated actions/checkout and actions/setup-node from v4 to v7.
+- Updated activitystrea.ms and undici.
+- Updated actions/checkout and actions/setup-node.
 - Enabled Dependabot updates for GitHub Actions and a seven-day cooldown
   for npm and GitHub Actions updates.
 
@@ -172,7 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `activitypub-bot` repository (commits from 2024-09 onward) and
   filtered into this repo on 2026-01-23 prior to publication.
 
-[Unreleased]: https://github.com/evanp/activitypub-nock/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/evanp/activitypub-nock/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/evanp/activitypub-nock/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/evanp/activitypub-nock/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/evanp/activitypub-nock/compare/v0.9.5...v0.10.0
 [0.9.5]: https://github.com/evanp/activitypub-nock/compare/v0.9.4...v0.9.5
