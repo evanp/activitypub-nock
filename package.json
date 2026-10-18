@@ -25,7 +25,7 @@
   "homepage": "https://github.com/evanp/activitypub-nock#readme",
   "dependencies": {
     "activitystrea.ms": "^4.0.0",
-    "nock": "^14.0.10"
+    "nock": "^15.0.1"
   },
   "devDependencies": {
     "node-fetch": "^3.3.2"
