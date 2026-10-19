@@ -42,6 +42,41 @@ describe('activitypub-mock', async () => {
     assert.strictEqual(json.type, 'Person')
   })
 
+  it('captures request headers as a plain object', async () => {
+    const { getRequestHeaders, resetRequestHeaders } = module
+    const id = `https://${domain}/user/header1`
+    try {
+      const result = await fetch(id, {
+        headers: { 'X-Test-Header': 'header-value' }
+      })
+      assert.strictEqual(result.status, 200)
+      const headers = getRequestHeaders(id)
+      assert.strictEqual(Object.getPrototypeOf(headers), Object.prototype)
+      assert.strictEqual(headers['x-test-header'], 'header-value')
+    } finally {
+      resetRequestHeaders()
+    }
+    assert.strictEqual(getRequestHeaders(id), undefined)
+  })
+
+  it('preserves the query string for WebFinger requests', async () => {
+    const { getRequestHeaders, resetRequestHeaders } = module
+    const resource = `acct:webfinger1@${domain}`
+    const id = `https://${domain}/.well-known/webfinger?resource=${encodeURIComponent(resource)}`
+    try {
+      const result = await fetch(id, {
+        headers: { Accept: 'application/jrd+json' }
+      })
+      assert.strictEqual(result.status, 200)
+      const json = await result.json()
+      assert.strictEqual(json.subject, resource)
+      assert.strictEqual(json.links[0].href, `https://${domain}/user/webfinger1`)
+      assert.strictEqual(getRequestHeaders(id).accept, 'application/jrd+json')
+    } finally {
+      resetRequestHeaders()
+    }
+  })
+
   it('can get a mock object', async () => {
     const username = 'test1'
     const id = `https://${domain}/user/${username}/note/1`
@@ -53,7 +88,7 @@ describe('activitypub-mock', async () => {
   })
 
   it('can get a request body', async () => {
-    const { getBody, resetBodies } = module
+    const { getBody, resetBodies, getRequestHeaders, resetRequestHeaders } = module
     const username = 'test1'
     const remotename = 'remote1'
     const id = `https://${domain}/user/${username}/inbox`
@@ -62,17 +97,20 @@ describe('activitypub-mock', async () => {
       type: 'Activity',
       'actor': `https://${remote}/user/${remotename}`
     })
+    const requestBody = await activity.write()
     const result = await fetch(id, {
       method: 'POST',
-      body: await activity.write(),
+      body: requestBody,
       headers: {
         'Content-Type': 'application/activity+json'
       }
     })
     assert.strictEqual(result.status, 202)
     const body = getBody(id)
-    assert.ok(body.match(remotename))
+    assert.strictEqual(body, requestBody)
+    assert.strictEqual(getRequestHeaders(id)['content-type'], 'application/activity+json')
     resetBodies()
+    resetRequestHeaders()
   })
 
   it('can setup a domain with a shared inbox', async () => {
@@ -102,16 +140,17 @@ describe('activitypub-mock', async () => {
       type: 'Activity',
       'actor': `https://${remote}/user/${remotename}`
     })
+    const requestBody = await activity.write()
     const result = await fetch(id, {
       method: 'POST',
-      body: await activity.write(),
+      body: requestBody,
       headers: {
         'Content-Type': 'application/activity+json'
       }
     })
     assert.strictEqual(result.status, 202)
     const body = getBody(id)
-    assert.ok(body.match(remotename))
+    assert.strictEqual(body, requestBody)
     assert.strictEqual(postSharedInbox[shared], 1)
     resetBodies()
     resetSharedInbox()

@@ -359,7 +359,7 @@ export const resetRequestHeaders = () => {
 
 const captureRequestHeaders = (domain, uri, req) => {
   const url = new URL(uri, `https://${domain}`).toString()
-  const headers = req?.headers || {}
+  const headers = Object.fromEntries(req?.headers || [])
   requestHeaders.set(url, headers)
 }
 
@@ -376,8 +376,10 @@ export const nockSetup = (domain, options = {}) => {
   nock(`https://${domain}`)
     .persist()
     .get(/^\/.well-known\/webfinger/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const parsed = new URL(uri, `https://${domain}`)
       const resource = parsed.searchParams.get('resource')
       if (!resource) {
@@ -403,9 +405,11 @@ export const nockSetup = (domain, options = {}) => {
         { 'Content-Type': 'application/jrd+json', ...rateLimitHeaders() }]
     })
     .post(/^\/shared\/inbox$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
-      captureBody(domain, uri, requestBody)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
+      captureBody(domain, uri, await request.text())
       if (!options.sharedInbox) {
         return [404, 'not found']
       }
@@ -416,8 +420,10 @@ export const nockSetup = (domain, options = {}) => {
       return [202, 'accepted', rateLimitHeaders()]
     })
     .get(/^\/user\/(\w+)$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const username = uri.match(/^\/user\/(\w+)$/)[1]
       const overrideStatus = getActorStatus(username, domain)
       if (overrideStatus) {
@@ -434,9 +440,11 @@ export const nockSetup = (domain, options = {}) => {
           ...rateLimitHeaders() }]
     })
     .post(/^\/user\/(\w+)\/inbox$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
-      captureBody(domain, uri, requestBody)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
+      captureBody(domain, uri, await request.text())
       const username = uri.match(/^\/user\/(\w+)\/inbox$/)[1]
       const overrideStatus = getActorStatus(username, domain)
       if (overrideStatus) {
@@ -457,7 +465,9 @@ export const nockSetup = (domain, options = {}) => {
       return results
     })
     .get(/^\/user\/(\w+)\/inbox$/)
-    .reply(async function (uri, requestBody) {
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
       const username = uri.match(/^\/user\/(\w+)\/inbox$/)[1]
       const overrideStatus = getActorStatus(username, domain)
       if (overrideStatus) {
@@ -466,8 +476,10 @@ export const nockSetup = (domain, options = {}) => {
       return [403, 'forbidden', rateLimitHeaders() ]
     })
     .get(/^\/user\/(\w+)\/publickey$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const username = uri.match(/^\/user\/(\w+)\/publickey$/)[1]
       const overrideStatus = getActorStatus(username, domain)
       if (overrideStatus) {
@@ -496,8 +508,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/followers$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const username = uri.match(/^\/user\/(\w+)\/followers$/)[1]
       const overrideStatus = getActorStatus(username, domain)
       if (overrideStatus) {
@@ -530,8 +544,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/following$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const username = uri.match(/^\/user\/(\w+)\/following$/)[1]
       const overrideStatus = getActorStatus(username, domain)
       if (overrideStatus) {
@@ -564,9 +580,11 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/collection\/(\d+)$/)
-    .reply(async function (uri, requestBody) {
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
       options?.logger?.debug('Capturing request headers')
-      captureRequestHeaders(domain, uri, this?.req)
+      captureRequestHeaders(domain, uri, request)
       options?.logger?.debug('Matching parameters')
       const match = uri.match(/^\/user\/(\w+)\/collection\/(\d+)$/)
       const username = match[1]
@@ -594,8 +612,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/orderedcollection\/(\d+)$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const match = uri.match(/^\/user\/(\w+)\/orderedcollection\/(\d+)$/)
       const username = match[1]
       const overrideStatus = getActorStatus(username, domain)
@@ -618,8 +638,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/pagedcollection\/(\d+)$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const match = uri.match(/^\/user\/(\w+)\/pagedcollection\/(\d+)$/)
       const username = match[1]
       const overrideStatus = getActorStatus(username, domain)
@@ -646,8 +668,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/pagedcollection\/(\d+)\/page\/(\d+)$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const match = uri.match(/^\/user\/(\w+)\/pagedcollection\/(\d+)\/page\/(\d+)$/)
       const username = match[1]
       const overrideStatus = getActorStatus(username, domain)
@@ -675,8 +699,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/pagedorderedcollection\/(\d+)$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const match = uri.match(/^\/user\/(\w+)\/pagedorderedcollection\/(\d+)$/)
       const username = match[1]
       const overrideStatus = getActorStatus(username, domain)
@@ -703,8 +729,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/pagedorderedcollection\/(\d+)\/page\/(\d+)$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const match = uri.match(/^\/user\/(\w+)\/pagedorderedcollection\/(\d+)\/page\/(\d+)$/)
       const username = match[1]
       const overrideStatus = getActorStatus(username, domain)
@@ -732,8 +760,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/(\w+)\/(\d+)$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const match = uri.match(/^\/user\/(\w+)\/(\w+)\/(\d+)$/)
       const username = match[1]
       const overrideStatus = getActorStatus(username, domain)
@@ -754,8 +784,10 @@ export const nockSetup = (domain, options = {}) => {
       ]
     })
     .get(/^\/user\/(\w+)\/(\w+)\/(\d+)\/(.*)$/)
-    .reply(async function (uri, requestBody) {
-      captureRequestHeaders(domain, uri, this?.req)
+    .reply(async function (request) {
+      const url = new URL(request.url)
+      const uri = url.pathname + url.search
+      captureRequestHeaders(domain, uri, request)
       const match = uri.match(/^\/user\/(\w+)\/(\w+)\/(\d+)\/(.*)$/)
       const username = match[1]
       const overrideStatus = getActorStatus(username, domain)
