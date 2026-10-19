@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-19
+
+### Changed
+
+- Update nock to align with consuming test suites using nock 15.
+- Support Node.js 22, 24, and 26, and align release tests with these versions.
+- Drop support for Node.js 20 and 25.
+- Publish releases using Node.js 26.
+
 ## [1.0.1] - 2026-10-05
 
 ### Changed
@@ -177,7 +186,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `activitypub-bot` repository (commits from 2024-09 onward) and
   filtered into this repo on 2026-01-23 prior to publication.
 
-[Unreleased]: https://github.com/evanp/activitypub-nock/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/evanp/activitypub-nock/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/evanp/activitypub-nock/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/evanp/activitypub-nock/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/evanp/activitypub-nock/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/evanp/activitypub-nock/compare/v0.9.5...v0.10.0
