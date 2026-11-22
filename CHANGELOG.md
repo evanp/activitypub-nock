@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-22
+
 ### Added
 
 - Add an `algorithm` option to `nockMessageSignature()`; pass `null` to
@@ -202,7 +204,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `activitypub-bot` repository (commits from 2024-09 onward) and
   filtered into this repo on 2026-01-23 prior to publication.
 
-[Unreleased]: https://github.com/evanp/activitypub-nock/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/evanp/activitypub-nock/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/evanp/activitypub-nock/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/evanp/activitypub-nock/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/evanp/activitypub-nock/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/evanp/activitypub-nock/compare/v1.0.0...v1.0.1
