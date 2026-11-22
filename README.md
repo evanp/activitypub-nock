@@ -181,7 +181,7 @@ Same as `nockSignature`, but emits a `keyId` of the form
 `<actor-url>#main-key` (the convention used by Mastodon and
 compatibles).
 
-#### `nockMessageSignature({ method?, url, contentDigest?, username, domain?, keyId? }) → Promise<{ 'signature-input', signature }>`
+#### `nockMessageSignature({ method?, url, contentDigest?, username, domain?, keyId?, algorithm? }) → Promise<{ 'signature-input', signature }>`
 
 Generate an RFC 9421 HTTP Message Signature. The returned object has
 the two header values: `signature-input` (the `sig1=…` covered-component
@@ -189,6 +189,11 @@ spec) and `signature` (the `sig1=:base64:` signature). Components
 covered include `@method`, `@authority`, `@path`, `@target-uri`,
 `@scheme`, `@request-target`, `@query` and per-name `@query-param`
 when the URL has a query string, and `content-digest` when supplied.
+
+The `algorithm` option sets the `alg` parameter in `Signature-Input`
+and defaults to `rsa-v1_5-sha256`. Pass `algorithm: null` to omit `alg`
+before signing. Signatures are generated using RSA PKCS#1 v1.5 with
+SHA-256.
 
 ### Bios
 

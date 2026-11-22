@@ -1,5 +1,6 @@
 import { describe, it, before } from 'node:test'
 import assert from 'node:assert'
+import crypto from 'node:crypto'
 import as2 from 'activitystrea.ms'
 import fetch from 'node-fetch'
 import { nockFormat } from '../index.js'
@@ -292,6 +293,48 @@ describe('activitypub-mock', async () => {
       assert.ok(result['signature-input'].match(/"content-digest"/))
       assert.ok(result.signature)
       assert.ok(result.signature.match(/^sig1=:.+:$/))
+    })
+
+    it('can make a valid message signature without an alg parameter', async () => {
+      const username = 'algless'
+      const url = `https://${remote}/user/receiver/inbox`
+      const keyId = nockFormat({ username, domain }) + '#main-key'
+      const body = JSON.stringify({ type: 'Create' })
+      const contentDigest = `sha-256=:${crypto.createHash('sha256').update(body).digest('base64')}:`
+      const { signature, 'signature-input': signatureInput } = await nockMessageSignature({
+        method: 'POST',
+        url,
+        contentDigest,
+        username,
+        keyId,
+        domain,
+        algorithm: null
+      })
+
+      assert.match(signatureInput, /^sig1=\(/)
+      assert.doesNotMatch(signatureInput, /;alg=/)
+      assert.ok(signatureInput.includes(`;keyid="${keyId}"`))
+      assert.match(signatureInput, /;created=\d+/)
+      assert.match(signatureInput, /"content-digest"/)
+
+      const signatureParams = signatureInput.slice('sig1='.length)
+      const signatureBase = [
+        '"@method": POST',
+        `"@authority": ${remote}`,
+        '"@path": /user/receiver/inbox',
+        `"@target-uri": ${url}`,
+        '"@scheme": https',
+        '"@request-target": /user/receiver/inbox',
+        `"content-digest": ${contentDigest}`,
+        `"@signature-params": ${signatureParams}`
+      ].join('\n')
+      const signatureMatch = signature.match(/^sig1=:([^:]+):$/)
+      assert.ok(signatureMatch)
+      const publicKey = await module.getPublicKey(username, domain)
+      assert.ok(crypto.verify('sha256', Buffer.from(signatureBase), {
+        key: publicKey,
+        padding: crypto.constants.RSA_PKCS1_PADDING
+      }, Buffer.from(signatureMatch[1], 'base64')))
     })
 
     it('can make a message signature with a fragment key URL', async () => {

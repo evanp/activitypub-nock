@@ -181,7 +181,7 @@ export const nockSignatureFragment = async ({ method = 'GET', url, date, digest 
   return `keyId="${keyId}",headers="(request-target) host date${(digest) ? ' digest' : ''}",signature="${signature.replace(/"/g, '\\"')}",algorithm="rsa-sha256"`
 }
 
-export const nockMessageSignature = async ({ method = 'GET', url, contentDigest = null, username, domain = defaultDomain, keyId = null }) => {
+export const nockMessageSignature = async ({ method = 'GET', url, contentDigest = null, username, domain = defaultDomain, keyId = null, algorithm = 'rsa-v1_5-sha256' }) => {
   if (!keyId) {
     keyId = nockFormat({ username, key: true, domain })
   }
@@ -215,8 +215,15 @@ export const nockMessageSignature = async ({ method = 'GET', url, contentDigest 
       ? `"${arr[0]}";${arr[2]}`
       : `"${arr[0]}"`
   ).join(' ')
-  const signatureParams = `(${componentList});keyid="${keyId}";alg="rsa-v1_5-sha256";created=${created}`
-
+  const signatureParamArr = [
+    `(${componentList})`,
+    `keyid="${keyId}"`,
+    `created=${created}`
+  ]
+  if (algorithm) {
+    signatureParamArr.push(`alg="${algorithm}"`)
+  }
+  const signatureParams = signatureParamArr.join(';')
   signatureInput.push(['@signature-params', signatureParams])
 
   const data = signatureInput.map(
