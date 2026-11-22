@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add an `algorithm` option to `nockMessageSignature()`; pass `null` to
   generate signatures without an `alg` parameter.
 
+### Changed
+
+- Update activitystrea.ms, nock, and undici.
+
 ## [2.0.1] - 2026-10-19
 
 ### Fixed
