@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/evanp/activitypub-nock#readme",
   "dependencies": {
-    "activitystrea.ms": "^4.0.0",
+    "activitystrea.ms": "^4.1.2",
     "nock": "^15.0.1"
   },
   "devDependencies": {
